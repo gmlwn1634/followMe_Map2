@@ -1,5 +1,3 @@
-# followMe_Map2
-
 # followMe_Map
     병원 실시간 길안내 프로젝트
 
