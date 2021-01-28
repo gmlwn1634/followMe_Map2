@@ -40,6 +40,10 @@ public class InfoFragment extends Fragment {
 
         binding = FragmentInfoBinding.inflate(inflater);
 
+        binding.name.setText(LoginActivity.patientName);
+        binding.patientId.setText(LoginActivity.patientId + "");
+        binding.phoneNumber.setText(LoginActivity.phoneNumber);
+
         binding.logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,7 +51,14 @@ public class InfoFragment extends Fragment {
             }
         });
 
-        View v = inflater.inflate(R.layout.fragment_info,container,false);
+        binding.logoutBtn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendToken();
+            }
+        });
+
+        View v = inflater.inflate(R.layout.fragment_info, container, false);
         context = container.getContext();
 
 
@@ -70,6 +81,7 @@ public class InfoFragment extends Fragment {
 
                             String message = jsonObject.getString("message");
 
+                            System.out.println("message" + message);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -77,7 +89,7 @@ public class InfoFragment extends Fragment {
 
                         Log.d(TAG, response);
                         Toast.makeText(context, "로그아웃에 성공하였습니다.", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(context, HomeActivity.class);
+                        Intent intent = new Intent(context, LoginActivity.class);
                         startActivity(intent);
                     }
                 },

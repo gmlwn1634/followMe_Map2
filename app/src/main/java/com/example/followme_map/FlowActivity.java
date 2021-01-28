@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -64,7 +65,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng thisPoint = new LatLng(35.896761232132604, 128.62037402930775);
     private LatLng schoolPoint = new LatLng(35.89679977286669, 128.62092742557013);
     private LatLng startPoint, endPoint;
-    private ArrayList<Flow> flowList = new ArrayList<Flow>();
+    private ArrayList<Node> nodeList = new ArrayList<Node>();
 
     private Marker thisMarker;
     private boolean setThisMarker = false;
@@ -140,7 +141,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 binding.naviStart.setVisibility(View.INVISIBLE);
                 binding.recyclerView.setVisibility(View.GONE);
-                setFirstFlow();
+                getFirstFlow();
             }
         });
 
@@ -177,32 +178,32 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
 //        }
 //    };
 
-    public void setFirstFlow() {
+    //첫번째 진료동선
+    public void getFirstFlow() {
         receiveFlow();
         connectPyTest();
         camPosition = new CameraPosition.Builder().target(thisPoint).zoom(25).bearing(-14.7f).build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(camPosition));
-    } //setFirstFlow()
 
-    public void setAllFlow() {
+
+    } //getFirstFlow()
+
+    //전체 진료동선
+    public void getAllFlow() {
         receiveFlow();
         camPosition = new CameraPosition.Builder().target(schoolPoint).zoom(18.5f).bearing(-14.7f).build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(camPosition));
-    } //setAllFlow()
 
-    // 구글맵 준비됨
+
+    } //getAllFlow()
+
+
     @Override
+    // 구글맵 준비됨
     public void onMapReady(GoogleMap googleMap) {
-
-
         mMap = googleMap;
-        // 본관 좌표를 기준으로 구글맵에 도면 오버레이
-
-        mapOverlay();
-
-        setAllFlow();
-
-
+        mapOverlay(); // 본관 좌표를 기준으로 구글맵에 도면 오버레이
+        getAllFlow();
     } //onMapReady()
 
     //파이썬에서 실시간 좌표를 받아왔다치고
@@ -212,20 +213,19 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void run() {
                 while (true) {
-                    try {
-                        testLatLng();
-                        setCameraPosition();
-                        changeTurn();
-                        Thread.sleep(300);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    testLatLng();
+                    setCameraPosition();
+                    changeTurn();
                 }
             }
         }).start();
     } //connectPyTest()
 
     // 방향전환 계산
+    // : 현위치에서 가장 가까운 노드 찾기 nearNode()
+    // : nearNode()에서 5번째 후의 노드와 방위각 계산
+    // : 방위각이 몇에서 몇이면 좌회전, 우회전 -> 테스트필요
+
     void changeTurn() {
         new Thread(new Runnable() {
             @Override
@@ -233,61 +233,57 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
-
                         try {
+                            nearNode();
+//                            LatLng oriLatLng = nearNode().getLatLng();
+//                            LatLng destLatLng = nodeList.get(nearNode().getIndex() + 2).getLatLng();
+//
+//
+//                            //라디안 각도로 변환
+//                            double radian = Math.PI / 180;
+//                            double oriLat = oriLatLng.latitude * radian;
+//                            double oriLng = oriLatLng.longitude * radian;
+//                            double destLat = destLatLng.latitude * radian;
+//                            double destLng = destLatLng.longitude * radian;
+//
+//                            //두 좌표의 거리
+//                            double radian_distance = Math.acos(Math.sin(oriLat) * Math.sin(destLat)
+//                                    + Math.cos(oriLat) * Math.cos(destLat) * Math.cos(oriLng - destLng));
+//
+//                            double dist = radian_distance * radian;
+//                            dist = dist * 60 * 1.1515;
+//                            dist = dist * 1.609344;
+//
+//                            //목적지 이동 방향
+//                            double radian_bearing = Math.acos((Math.sin(destLat) - Math.sin(oriLat)
+//                                    * Math.cos(radian_distance)) / (Math.cos(oriLat) * Math.sin(radian_distance)));
+//
+//                            // 방위각
+//                            double true_bearing = 0;
+//                            if (Math.sin(destLng - oriLng) < 0) {
+//                                true_bearing = radian_bearing * (180 / Math.PI);
+//                                true_bearing = 360 - true_bearing;
+//                            } else {
+//                                true_bearing = radian_bearing * (180 / Math.PI);
+//                            }
+//
+//
+//                            //81.61730028609989 좌회전
+//                            //81.40815369796698 우회전
+//                            //309.9079119302796 //좌회전
+//                            //340.95356272954484 //우회전
+//
+//                            System.out.println("각도" + true_bearing);
+                            Thread.sleep(300);
+                        } catch (Exception e) {
+                            e.printStackTrace();
 
-                            LatLng startLatLng = flowList.get(nearDist()).getLatLng();
-                            LatLng endLatLng = flowList.get(nearDist() + 2).getLatLng();
-
-                            //라디안 각도로 변환
-                            double radian = Math.PI / 180;
-                            double startLat = startLatLng.latitude * radian;
-                            double startLng = startLatLng.longitude * radian;
-                            double endLat = endLatLng.latitude * radian;
-                            double endLng = endLatLng.longitude * radian;
-
-                            //두 좌표의 거리
-                            double radian_distance = Math.acos(Math.sin(startLat) * Math.sin(endLat)
-                                    + Math.cos(startLat) * Math.cos(endLat) * Math.cos(startLng - endLng));
-
-                            double dist = radian_distance * radian;
-                            dist = dist * 60 * 1.1515;
-                            dist = dist * 1.609344;
-
-                            //목적지 이동 방향
-                            double radian_bearing = Math.acos((Math.sin(endLat) - Math.sin(startLat)
-                                    * Math.cos(radian_distance)) / (Math.cos(startLat) * Math.sin(radian_distance)));
-
-                            // 방위각
-                            double true_bearing = 0;
-                            if (Math.sin(endLng - startLng) < 0) {
-                                true_bearing = radian_bearing * (180 / Math.PI);
-                                true_bearing = 360 - true_bearing;
-                            } else {
-                                true_bearing = radian_bearing * (180 / Math.PI);
-                            }
-
-                            System.out.println("각도" + true_bearing);
-
-                            //64.84924134504966 좌회전
-                            //81.61730028609989 좌회전
-                            //86.25218522208272 좌회전
-
-                            //50.0214319369587 우회전
-                            //81.40815369796698 우회전
-
-
-                        } catch (IndexOutOfBoundsException e) {
-                            return;
                         }
-
-
                     }
                 });
             }
         }).start();
-    }
+    } //setCameraPosition()
 
 
     // cameraPosition 업데이트
@@ -298,18 +294,25 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        zoomLevel = mMap.getCameraPosition().zoom;
-                        camPosition = new CameraPosition.Builder(camPosition).zoom(zoomLevel).target(thisPoint).bearing(getBearing(flowList.get(nearDist()).getLatLng(), flowList.get(nearDist() + 1).getLatLng())).build();
-                        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(camPosition));
-                        if (setThisMarker)
-                            thisMarker.remove();
-                        thisMarker = mMap.addMarker(new MarkerOptions()
-                                .position(thisPoint)
-                                .anchor(0.5f, 0.5f)
-                                .rotation(getChangedAzimut() - camPosition.bearing)
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.this_point)));
 
-                        setThisMarker = true;
+                        try {
+                            zoomLevel = mMap.getCameraPosition().zoom;
+                            camPosition = new CameraPosition.Builder(camPosition).zoom(zoomLevel).target(thisPoint).bearing(getBearing(nodeList.get(nearDist()).getLatLng(), nodeList.get(nearDist() + 1).getLatLng())).build();
+                            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(camPosition));
+                            if (setThisMarker)
+                                thisMarker.remove();
+                            thisMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(thisPoint)
+                                    .anchor(0.5f, 0.5f)
+                                    .rotation(getChangedAzimut() - camPosition.bearing)
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.this_point)));
+
+                            setThisMarker = true;
+                            Thread.sleep(300);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 });
             }
@@ -319,6 +322,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //구글맵 오버레이 (3층) - 구글맵이 준비되면 호출
     void mapOverlay() {
+
         mMap.addGroundOverlay(new GroundOverlayOptions()
                 .image(BitmapDescriptorFactory.fromResource(R.drawable.map_2th_floor))
                 .positionFromBounds(new LatLngBounds(new LatLng(35.89651393057683, 128.6201298818298), new LatLng(35.89707923321034, 128.62176975983763))));
@@ -337,27 +341,21 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                         try {
 
                             System.out.println("전송됨");
-                            flowList.clear();
+//                            nodeList.clear();
                             JSONObject jsonResponse = new JSONObject(response);
 
-                            String err = jsonResponse.getString("error");
+//                            JSONArray nodeArr = jsonResponse.getJSONArray("nodeFlow"); //첫번째 진료동선에 대한 노드 정보
 
-                            System.out.println("err" + err);
-
+//                            for (int i = 0; i < nodeArr.length(); i++) {
+//                                JSONObject nodeObj = nodeArr.getJSONObject(i);
+//                                Node node = new Node();
 //
-//                            JSONArray flowArr = jsonResponse.getJSONArray("nodeFlow"); //첫번째 진료동선에 대한 노드 정보
-//
-//                            for (int i = 0; i < flowArr.length(); i++) {
-//                                JSONObject flowObj = flowArr.getJSONObject(i);
-//                                Flow flow = new Flow();
-//
-//                                flow.setMinor(flowObj.getInt("node_id"));
-//                                flow.setFloor(flowObj.getInt("floor"));
-//                                flow.setLatLng(flowObj.getDouble("lat"), flowObj.getDouble("lng"));
-//                                flowList.add(flow);
-//                                int stairCheck = flowObj.getInt("stair_check"); //계단판별
-//
-//                                Log.i(TAG, "stairCheck " + stairCheck);
+//                                node.setId(nodeObj.getInt("node_id"));
+//                                node.setFloor(nodeObj.getInt("floor"));
+//                                node.setLatLng(nodeObj.getDouble("lat"), nodeObj.getDouble("lng"));
+//                                node.setStairCheck(nodeObj.getInt("stair_check"));
+//                                node.setIndex(i);
+//                                nodeList.add(node);
 //
 //                            }
 
@@ -366,17 +364,20 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                             Log.i(TAG, "서버에 진료동선 요청 실패" + e.getMessage());
                         }
 
-//                        for (int i = 0; i < flowList.size(); i++) {
-//                            Log.i(TAG, "진료동선 요청 성공/ 진료동선 1 [" + i + "] minor : " + flowList.get(i).getMinor());
-//                            Log.i(TAG, "진료동선 요청 성공/ 진료동선 1 [" + i + "] floor : " + flowList.get(i).getFloor());
-//                            Log.i(TAG, "진료동선 요청 성공/ 진료동선 1 [" + i + "] latLng : " + flowList.get(i).getLatLng());
-//
-//                        }
-//
-//                        startPoint = flowList.get(0).getLatLng();
-//                        endPoint = flowList.get(flowList.size() - 1).getLatLng();
+
+//                        startPoint = nodeList.get(0).getLatLng();
+//                        endPoint = nodeList.get(nodeList.size() - 1).getLatLng();
 //                        mMap.addMarker(new MarkerOptions().position(endPoint).title("도착지").icon(BitmapDescriptorFactory.fromResource(R.drawable.destination)));
 //                        drawPolyline();
+//
+//                        destInfoArrayList.add(new DestInfo(startPoint.toString(), endPoint.toString()));
+//                        destInfoArrayList.add(new DestInfo("MRI검사실", "채혈실"));
+//                        destInfoArrayList.add(new DestInfo("MRI검사실", "채혈실"));
+//                        destInfoArrayList.add(new DestInfo("MRI검사실", "채혈실"));
+//                        destInfoArrayList.add(new DestInfo("MRI검사실", "채혈실"));
+//
+//                        DestAdapter destAdapter = new DestAdapter(destInfoArrayList);
+//                        binding.recyclerView.setAdapter(destAdapter);
                     }
                 },
                 new Response.ErrorListener() { //에러 발생시 호출될 리스너 객체
@@ -390,7 +391,6 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<String, String>();
-//                params.put("patient_id", "1");
                 return params;
             }
 
@@ -405,23 +405,18 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         };
 
         ///test
-        flowList.clear();
-        flowList.add(new Flow(1, 1, 35.896761232132604, 128.62037402930775));
-        flowList.add(new Flow(1, 1, 35.89671595195291, 128.6203835852756));
-        flowList.add(new Flow(1, 1, 35.89683636886484, 128.6210034794277));
-        flowList.add(new Flow(1, 1, 35.89679227657561, 128.62100719440897));
-//        flowList.add(new Flow(1, 1, 35.89641350844464, 128.62063344792466));
-//        flowList.add(new Flow(1, 1, 35.896557067789736, 128.62059800456885));
-//        flowList.add(new Flow(1, 1, 35.896602186387305, 128.6203549644148));
-//        flowList.add(new Flow(1, 1, 35.89672933866022, 128.62052458618896));
-//        flowList.add(new Flow(1, 1, 35.89682572815038, 128.6206840812901));
-//        flowList.add(new Flow(1, 1, 35.896887253295496, 128.62093977978552));
-//        flowList.add(new Flow(1, 1, 35.89685649072892, 128.6212638333243));
-//        flowList.add(new Flow(1, 1, 35.89676215211687, 128.621466366786));
-//        flowList.add(new Flow(1, 1, 35.896993896767086, 128.6215575068438));
+        nodeList.clear();
+        nodeList.add(new Node(1, 1, 35.896761232132604, 128.62037402930775, 2, 1));
+        nodeList.add(new Node(1, 1, 35.89671595195291, 128.6203835852756, 2, 1));
+        nodeList.add(new Node(1, 1, 35.89683636886484, 128.6210034794277, 2, 1));
+        nodeList.add(new Node(1, 1, 35.89679227657561, 128.62100719440897, 2, 1));
+        nodeList.add(new Node(1, 1, 35.89641350844464, 128.62063344792466, 2, 1));
+        nodeList.add(new Node(1, 1, 35.896557067789736, 128.62059800456885, 2, 1));
+        nodeList.add(new Node(1, 1, 35.896602186387305, 128.6203549644148, 2, 1));
+        nodeList.add(new Node(1, 1, 35.89672933866022, 128.62052458618896, 2, 1));
 
-        startPoint = flowList.get(0).getLatLng();
-        endPoint = flowList.get(flowList.size() - 1).getLatLng();
+        startPoint = nodeList.get(0).getLatLng();
+        endPoint = nodeList.get(nodeList.size() - 1).getLatLng();
         mMap.addMarker(new MarkerOptions().position(endPoint).title("도착지").icon(BitmapDescriptorFactory.fromResource(R.drawable.destination)));
         drawPolyline();
 
@@ -444,14 +439,14 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     void drawPolyline() {
 
         PolylineOptions polyOpt = new PolylineOptions();
-        for (int i = 0; i < flowList.size(); i++) {
-            polyOpt.add(flowList.get(i).getLatLng());
-//            mMap.addMarker(new MarkerOptions()
-//                    .position(flowList.get(i).getLatLng())
-//                    .draggable(true))
-//                    .setTitle(flowList.get(i).getLatLng().toString());
+        for (int i = 0; i < nodeList.size(); i++) {
+            polyOpt.add(nodeList.get(i).getLatLng());
+            mMap.addMarker(new MarkerOptions()
+                    .position(nodeList.get(i).getLatLng())
+                    .draggable(true))
+                    .setTitle(nodeList.get(i).getLatLng().toString());
 
-            System.out.println("polyOPT" + flowList.get(i).getLatLng());
+            System.out.println("polyOPT" + nodeList.get(i).getLatLng());
         }
 
 
@@ -465,15 +460,63 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     //실제로는 칼만필터 적용한 위치값으로
     void testLatLng() {
 
-        testNum++;
-        if (testNum < 10)
-            thisPoint = new LatLng(thisPoint.latitude - 0.0000045280179694f, thisPoint.longitude + 0.000000955596785f);
-        else if (testNum < 50)
-            thisPoint = new LatLng(thisPoint.latitude + 0.00000301042279825f, thisPoint.longitude + 0.0000154973538025f);
-        else if (testNum < 65)
-            thisPoint = new LatLng(thisPoint.latitude - 0.000004409228923f, thisPoint.longitude + 0.000000371498127f);
-        else if (testNum == 65) {
+        try {
+//            testNum++;
+//            if (testNum < 10)
+//                thisPoint = new LatLng(thisPoint.latitude - 0.0000045280179694f, thisPoint.longitude + 0.000000955596785f);
+//            else if (testNum < 50)
+//                thisPoint = new LatLng(thisPoint.latitude + 0.00000301042279825f, thisPoint.longitude + 0.0000154973538025f);
+//            else if (testNum < 65)
+//                thisPoint = new LatLng(thisPoint.latitude - 0.000004409228923f, thisPoint.longitude + 0.000000371498127f);
+//            else if (testNum == 65) {
+//            }
+            Thread.sleep(300);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+
+//        testNum++;
+//        if (testNum < 10) {
+//            thisPoint = new LatLng(thisPoint.latitude + 0.00000195254861f, thisPoint.longitude - 0.000000534958134f);
+//        } else if (testNum < 20) {
+////            thisPoint = new LatLng(thisPoint.latitude + 0.000002177278378f, thisPoint.longitude - 0.000000942331348f);
+//        } else if (testNum < 30) {
+////            thisPoint = new LatLng(thisPoint.latitude + 0.000001629591251f, thisPoint.longitude - 0.00000067055224f);
+//        }
+//        else if (testNum < 30)
+//            thisPoint = new LatLng(thisPoint.latitude + 0.0000127152272915f, thisPoint.longitude + 0.000016962177416f);
+//        else if (testNum == 40) {
+//        }
+
+
+//        flowList.add(new Flow(1, 1, 35.89676692837808, 128.6211029849973));
+//        flowList.add(new Flow(1, 1, 35.89678645386418, 128.62109763541596));
+//        flowList.add(new Flow(1, 1, 35.89680822664796, 128.62108821210248));
+//        flowList.add(new Flow(1, 1, 35.89682452256047, 128.62108150658008));
+//        flowList.add(new Flow(1, 1, 35.89682343616642, 128.6210835182368));
+//        flowList.add(new Flow(1, 1, 35.896825065757504, 128.62108083602786));
+//        flowList.add(new Flow(1, 1, 35.89681854739295, 128.62105736669952));
+//        flowList.add(new Flow(1, 1, 35.89681516589326, 128.62103397526943));
+//        flowList.add(new Flow(1, 1, 35.89681219312073, 128.62099751503126));
+//        flowList.add(new Flow(1, 1, 35.896809908532376, 128.62097509789052));
+//        flowList.add(new Flow(1, 1, 35.89680469381667, 128.62095132676586));
+//        flowList.add(new Flow(1, 1, 35.89680054450277, 128.6209311288803));
+//        flowList.add(new Flow(1, 1, 35.896801087699956, 128.62092978777585));
+//        flowList.add(new Flow(1, 1, 35.896795650513106, 128.62090480051913));
+//        flowList.add(new Flow(1, 1, 35.89678256020647, 128.62090882044487));
+//        flowList.add(new Flow(1, 1, 35.896772278009685, 128.6209148348039));
+//        flowList.add(new Flow(1, 1, 35.89676795318017, 128.62089267161));
+//        flowList.add(new Flow(1, 1, 35.89676358504711, 128.62087258244446));
+//        flowList.add(new Flow(1, 1, 35.89675937058593, 128.62085237790225));
+//        flowList.add(new Flow(1, 1, 35.89675591348365, 128.62082863055366));
+//        flowList.add(new Flow(1, 1, 35.896750434252915, 128.62080660430948));
+//        flowList.add(new Flow(1, 1, 35.89674831490168, 128.620789836028));
+//        flowList.add(new Flow(1, 1, 35.896747355562546, 128.62076923440867));
+//        flowList.add(new Flow(1, 1, 35.896744657498395, 128.6207441547935));
+//        flowList.add(new Flow(1, 1, 35.89674038032299, 128.6207232206703));
+
+
     } //testLatLng()
 
 
@@ -537,11 +580,6 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         double radian_distance = Math.acos(Math.sin(startLat) * Math.sin(endLat)
                 + Math.cos(startLat) * Math.cos(endLat) * Math.cos(startLng - endLng));
 
-        double dist = radian_distance * radian;
-        dist = dist * 60 * 1.1515;
-        dist = dist * 1.609344;
-        System.out.println("좌표1:" + P1_LatLng + "좌표2:" + P2_LatLng + "거리" + radian_distance + "km" + dist);
-
         //목적지 이동 방향
         double radian_bearing = Math.acos((Math.sin(endLat) - Math.sin(startLat)
                 * Math.cos(radian_distance)) / (Math.cos(startLat) * Math.sin(radian_distance)));
@@ -559,13 +597,13 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         return (float) true_bearing;
     } //getBearing()
 
-    //가까운 길 찾기
+    //현 위치에서 가장 가까운 길 찾기
     int nearDist() {
-        double distToLines[][] = new double[flowList.size()][2];
+        double distToLines[][] = new double[nodeList.size()][2];
 
         //distToLines 배열에 현위치과 길의 거리를 저장
-        for (int i = 0; i < flowList.size() - 1; i++) {
-            distToLines[i][0] = distanceToLine(thisPoint, flowList.get(i).getLatLng(), flowList.get(i + 1).getLatLng());
+        for (int i = 0; i < nodeList.size() - 1; i++) {
+            distToLines[i][0] = distanceToLine(thisPoint, nodeList.get(i).getLatLng(), nodeList.get(i + 1).getLatLng());
             distToLines[i][1] = i; //몇번째 동선
         }
 
@@ -580,6 +618,54 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         return (int) distToLines[1][1];
 
     } //nearDist()
+
+
+    //현재 사용자의 층 수 알기
+    int getThisFloor() {
+        int thisFloor;
+        thisFloor = 2; //test
+//        신호가 가장 잘 잡히는 비콘 몇 개를 배열에 저장하고 어떤 minor가 가장 많은지 판단
+        return thisFloor;
+    } //getThisFloor()
+
+    //현 위치에서 가장 가까운 노드 찾기
+    Node nearNode() {
+        Node nearNode = null;
+        double thisLat = thisPoint.latitude;
+        double thisLng = thisPoint.longitude;
+        ArrayList<Double> distArr = new ArrayList<Double>(); //현위치-노드 거리 저장
+
+        //현재 층의 노드 중 현위치와 가장 가까운 노드 계산
+        for (int i = 0; i < nodeList.size(); i++) {
+            final double R = 6372.8 * 1000;
+
+            //같은 층의 노드인지 판단
+            if (nodeList.get(i).getFloor() == getThisFloor()) {
+                double nodeLat = nodeList.get(i).getLatLng().latitude;
+                double nodeLng = nodeList.get(i).getLatLng().longitude;
+
+                //거리 계산
+                double a = Math.pow(Math.sin(Math.toRadians(nodeLat - thisLat) / 2), 2.0)
+                        + Math.pow(Math.sin(Math.toRadians(nodeLng - thisLng) / 2), 2.0)
+                        * Math.cos(Math.toRadians(thisLat))
+                        * Math.cos(Math.toRadians(nodeLat));
+                double c = 2 * Math.asin(a);
+                double dist = R * c;
+                distArr.add(dist);
+                for (int j = 0; distArr.size() < j; j++)
+                    //현위치 - 비교 노드의 거리가 기존에 저장해둔 거리보다 작으면
+                    if (dist < distArr.get(j)) {
+                        System.out.println("dist " + dist);
+                        System.out.println("distArr.get(j) " + distArr.get(j));
+                        //가장 가까운 노드 새로 저장
+                        nearNode = nodeList.get(i);
+                        System.out.println("nearNode " + nearNode);
+                    }
+            }
+        }
+        return nearNode;
+    }//nearNode()
+
 
     // 현위치 회전 부드럽게
     private void changeAzimut(float mAzimut) {

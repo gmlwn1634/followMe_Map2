@@ -1,17 +1,12 @@
 package com.example.followme_map;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -20,9 +15,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.followme_map.databinding.ActivityLoginBinding;
-import com.example.followme_map.databinding.ActivityMainBinding;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,8 +27,19 @@ public class LoginActivity extends AppCompatActivity {
     private ActivityLoginBinding binding;
     private final String TAG = "LoginActivity";
     static String patientToken;
+    static int patientId;
+    static String patientName;
+    static String loginId;
+    static int postalCode;
+    static String address;
+    static String detailAddress;
+    static String phoneNumber;
+    static String notes;
+    private static String residentNumber;
+
 
     @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
@@ -90,20 +94,18 @@ public class LoginActivity extends AppCompatActivity {
                                 JSONObject patientObj = jsonObject.getJSONObject("patient_info");
 
                                 String status = jsonObject.getString("status");
-                                int patientId = patientObj.getInt("patient_id");
 
-                                String patientName = patientObj.getString("patient_name");
-                                String loginId = patientObj.getString("login_id");
-                                String residentNumber = patientObj.getString("resident_number");
-                                int postalCode = patientObj.getInt("postal_code");
-                                String address = patientObj.getString("address");
-                                String detailAddress = patientObj.getString("detail_address");
-                                String phoneNumber = patientObj.getString("phone_number");
-                                String notes = patientObj.getString("notes");
-                                String createdAt = patientObj.getString("created_at");
-                                String updatedAt = patientObj.getString("updated_at");
-
+                                patientId = patientObj.getInt("patient_id");
+                                patientName = patientObj.getString("patient_name");
+                                loginId = patientObj.getString("login_id");
+                                residentNumber = patientObj.getString("resident_number");
+                                postalCode = patientObj.getInt("postal_code");
+                                address = patientObj.getString("address");
+                                detailAddress = patientObj.getString("detail_address");
+                                phoneNumber = patientObj.getString("phone_number");
+                                notes = patientObj.getString("notes");
                                 patientToken = jsonObject.getString("token");
+
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -143,11 +145,6 @@ public class LoginActivity extends AppCompatActivity {
         }
 
 
-    }
-
-
-    String getPatientToken() {
-        return patientToken;
     }
 
 

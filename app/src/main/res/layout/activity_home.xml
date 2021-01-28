@@ -8,115 +8,29 @@
 
     <FrameLayout
         android:id="@+id/frame"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavi"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="100dp"
-                android:layout_marginEnd="10dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/user_cord" />
-
-            <ImageButton
-                android:id="@+id/paymentBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="67dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="#00FFFFFF"
-                app:layout_constraintEnd_toEndOf="@+id/imageButton7"
-                app:layout_constraintStart_toStartOf="@+id/imageButton7"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton7"
-                app:srcCompat="@drawable/payment" />
-
-            <ImageButton
-                android:id="@+id/imageButton7"
-                android:layout_width="wrap_content"
-                android:layout_height="67dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="#00FFFFFF"
-                app:layout_constraintEnd_toEndOf="@+id/flowStartBtn"
-                app:layout_constraintStart_toStartOf="@+id/flowStartBtn"
-                app:layout_constraintTop_toBottomOf="@+id/flowStartBtn"
-                app:srcCompat="@drawable/destination_search" />
-
-            <ImageButton
-                android:id="@+id/flowStartBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="67dp"
-                android:layout_gravity="center_horizontal"
-                android:backgroundTint="#00FFFFFF"
-                app:layout_constraintEnd_toEndOf="@+id/imageView3"
-                app:layout_constraintStart_toStartOf="@+id/imageView3"
-                app:layout_constraintTop_toBottomOf="@+id/imageView3"
-                app:srcCompat="@drawable/medical_routes" />
-
-            <ImageView
-                android:id="@+id/imageView4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="@+id/imageView3"
-                app:layout_constraintEnd_toEndOf="@+id/imageView3"
-                app:layout_constraintStart_toStartOf="@+id/imageView3"
-                app:layout_constraintTop_toTopOf="@+id/imageView3"
-                app:srcCompat="@drawable/qr" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
     </FrameLayout>
 
-    <LinearLayout
-        android:id="@+id/tab"
-        android:layout_width="match_parent"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavi"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/tab_home"
+        android:background="#FFFFFF"
+        android:padding="8dp"
+        app:itemIconTint="@color/menu_selector"
+        app:itemTextColor="@color/menu_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_menu"
 
-        <Button
-            android:id="@+id/button1"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:backgroundTint="#00FFFFFF" />
-
-
-        <Button
-            android:id="@+id/button2"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:backgroundTint="#00FFFFFF" />
-
-        <Button
-            android:id="@+id/button3"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:backgroundTint="#00FFFFFF" />
-
-
-    </LinearLayout>
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

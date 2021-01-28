@@ -23,7 +23,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(itemView);
             time = itemView.findViewById(R.id.time);
             place = itemView.findViewById(R.id.place);
-            price = itemView.findViewById(R.id.price);
+            price = itemView.findViewById(R.id.totalPrice);
         }
     }
 

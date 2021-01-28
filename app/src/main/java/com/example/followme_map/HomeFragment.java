@@ -18,9 +18,6 @@ public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
 
-    public HomeFragment() {
-
-    }
 
     @Nullable
     @Override
@@ -29,6 +26,9 @@ public class HomeFragment extends Fragment {
 
         binding = FragmentHomeBinding.inflate(inflater);
 
+
+        binding.name.setText(LoginActivity.patientName);
+        binding.patientId.setText(LoginActivity.patientId+"");
 
         binding.flowStartBtn.setOnClickListener(new View.OnClickListener() {
             @Override

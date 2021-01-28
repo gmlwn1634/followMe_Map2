@@ -73,6 +73,15 @@
                     android:inputType="numberDecimal"
                     app:layout_constraintStart_toStartOf="@+id/textView5"
                     app:layout_constraintTop_toBottomOf="@+id/textView5" />
+                <TextView
+                    android:id="@+id/textView19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="22sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/residentNumber1"
+                    app:layout_constraintStart_toEndOf="@+id/residentNumber1"
+                    app:layout_constraintTop_toTopOf="@+id/residentNumber1" />
 
 
                 <EditText
@@ -88,15 +97,6 @@
                     app:layout_constraintTop_toTopOf="@+id/textView19"
                     app:layout_constraintVertical_bias="0.466" />
 
-                <TextView
-                    android:id="@+id/textView19"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="-"
-                    android:textSize="22sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/residentNumber1"
-                    app:layout_constraintStart_toEndOf="@+id/residentNumber1"
-                    app:layout_constraintTop_toTopOf="@+id/residentNumber1" />
 
                 <TextView
                     android:id="@+id/textView12"
@@ -202,27 +202,69 @@
 
                 <TextView
                     android:id="@+id/textView20"
-                    android:layout_width="309dp"
-                    android:layout_height="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:fontFamily="sans-serif"
                     android:text="핸드폰번호"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toEndOf="@+id/email"
+                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="@+id/email"
                     app:layout_constraintTop_toBottomOf="@+id/email" />
 
                 <EditText
-                    android:id="@+id/phoneNumber"
-                    android:layout_width="309dp"
+                    android:id="@+id/phoneNum1"
+                    android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:ems="10"
-                    android:inputType="phone"
-                    app:layout_constraintEnd_toEndOf="@+id/textView20"
-                    app:layout_constraintHorizontal_bias="0.0"
+                    android:inputType="text"
                     app:layout_constraintStart_toStartOf="@+id/textView20"
                     app:layout_constraintTop_toBottomOf="@+id/textView20" />
+
+                <TextView
+                    android:id="@+id/textView30"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="22sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/phoneNum1"
+                    app:layout_constraintStart_toEndOf="@+id/phoneNum1"
+                    app:layout_constraintTop_toTopOf="@+id/phoneNum1" />
+
+                <EditText
+                    android:id="@+id/phoneNum2"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView30"
+                    app:layout_constraintStart_toEndOf="@+id/textView30"
+                    app:layout_constraintTop_toTopOf="@+id/textView30" />
+
+                <TextView
+                    android:id="@+id/textView31"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="22sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/phoneNum2"
+                    app:layout_constraintStart_toEndOf="@+id/phoneNum2"
+                    app:layout_constraintTop_toTopOf="@+id/phoneNum2" />
+
+                <EditText
+                    android:id="@+id/phoneNum3"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView31"
+                    app:layout_constraintEnd_toEndOf="@+id/textView20"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toEndOf="@+id/textView31"
+                    app:layout_constraintTop_toTopOf="@+id/textView31" />
+
 
                 <TextView
                     android:id="@+id/textView22"
@@ -231,10 +273,8 @@
                     android:layout_marginTop="20dp"
                     android:text="우편번호"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@+id/phoneNumber"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="@+id/phoneNumber"
-                    app:layout_constraintTop_toBottomOf="@+id/phoneNumber" />
+                    app:layout_constraintStart_toStartOf="@+id/phoneNum1"
+                    app:layout_constraintTop_toBottomOf="@+id/phoneNum1" />
 
                 <EditText
                     android:id="@+id/postal_code"

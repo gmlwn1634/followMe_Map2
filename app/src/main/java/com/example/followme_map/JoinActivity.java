@@ -1,16 +1,12 @@
 package com.example.followme_map;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -19,11 +15,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.followme_map.databinding.ActivityJoinBinding;
-import com.example.followme_map.databinding.ActivityLoginBinding;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -70,14 +62,16 @@ public class JoinActivity extends AppCompatActivity {
         final String password = binding.password.getText().toString();
         final String passwordConfirm = binding.passwordConfirm.getText().toString();
 //        final String email = binding.email.getText().toString();
-        final String phone = binding.phoneNumber.getText().toString();
+        final String phone1 = binding.phoneNum1.getText().toString();
+        final String phone2 = binding.phoneNum2.getText().toString();
+        final String phone3 = binding.phoneNum3.getText().toString();
         final String postalCode = binding.postalCode.getText().toString();
         final String address = binding.address.getText().toString();
         final String detailAddress = binding.detailAddress.getText().toString();
 
 
         //공란 체크
-        if (id.equals("") || residentNumber1.equals("") || residentNumber2.equals("") || password.equals("") || passwordConfirm.equals("") || name.equals("") || phone.equals("") || postalCode.equals("") || address.equals("") || detailAddress.equals(""))
+        if (id.equals("") || residentNumber1.equals("") || residentNumber2.equals("") || password.equals("") || passwordConfirm.equals("") || name.equals("") || phone1.equals("") || phone2.equals("") || phone3.equals("") || postalCode.equals("") || address.equals("") || detailAddress.equals(""))
             Toast.makeText(getApplication(), "공란이 있습니다.", Toast.LENGTH_SHORT).show();
 
 //        else if (!email.matches(emailVali)) {
@@ -138,7 +132,7 @@ public class JoinActivity extends AppCompatActivity {
                     params.put("postal_code", postalCode);
                     params.put("address", address);
                     params.put("detail_address", detailAddress);
-                    params.put("phone_number", phone);
+                    params.put("phone_number", phone1+"-"+phone2+"-"+phone3);
 
 
                     return params;
