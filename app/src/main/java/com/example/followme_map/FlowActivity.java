@@ -63,8 +63,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap; //구글맵 오버레이
     private CameraPosition camPosition;
     private float zoomLevel = 25;
-    private LatLng movePosition = new LatLng(35.896761232132604, 128.62037402930775);
-    private LatLng thisPoint = new LatLng(35.896761232132604, 128.62037402930775);
+    private LatLng thisPoint = new LatLng(35.89680460113681, 128.62093251284122);
     private LatLng schoolPoint = new LatLng(35.89679977286669, 128.62092742557013);
     private LatLng startPoint, endPoint;
     private ArrayList<Node> nodeList = new ArrayList<Node>();
@@ -142,6 +141,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 binding.naviStart.setVisibility(View.INVISIBLE);
+                binding.navigation.setVisibility(View.VISIBLE);
                 binding.recyclerView.setVisibility(View.GONE);
                 getFirstFlow();
             }
@@ -217,7 +217,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                 while (true) {
                     testLatLng();
                     setCameraPosition();
-//                    changeTurn();
+                    changeTurn();
                 }
             }
         }).start();
@@ -228,6 +228,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     // : nearNode()에서 5번째 후의 노드와 방위각 계산
     // : 방위각이 몇에서 몇이면 좌회전, 우회전 -> 테스트필요
 
+
     void changeTurn() {
         new Thread(new Runnable() {
             @Override
@@ -236,46 +237,37 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void run() {
                         try {
-                            LatLng oriLatLng = nearNode().getLatLng();
-                            LatLng destLatLng = nodeList.get(nearNode().getIndex() + 2).getLatLng();
+
+                            LatLng nodeA = nearNode().getLatLng();
+                            if ((nearNode().getIndex() + 1) >= nodeList.size() || (nearNode().getIndex() + 2) >= nodeList.size())
+                                return;
+
+                            LatLng nodeB = nodeList.get(nearNode().getIndex() + 1).getLatLng();
+                            LatLng nodeC = nodeList.get(nearNode().getIndex() + 2).getLatLng();
 
 
-                            //라디안 각도로 변환
-                            double radian = Math.PI / 180;
-                            double oriLat = oriLatLng.latitude * radian;
-                            double oriLng = oriLatLng.longitude * radian;
-                            double destLat = destLatLng.latitude * radian;
-                            double destLng = destLatLng.longitude * radian;
+                            Log.i("nearNode", "nodeA : " + nearNode().getIndex());
+                            Log.i("nearNode", "nodeB : " + nodeList.get(nearNode().getIndex() + 1).getIndex());
+                            Log.i("nearNode", "nodeC : " + nodeList.get(nearNode().getIndex() + 2).getIndex());
 
-                            //두 좌표의 거리
-                            double radian_distance = Math.acos(Math.sin(oriLat) * Math.sin(destLat)
-                                    + Math.cos(oriLat) * Math.cos(destLat) * Math.cos(oriLng - destLng));
+                            //좌우판단
+                            switch (ccw(nodeA, nodeB, nodeC)) {
 
-                            double dist = radian_distance * radian;
-                            dist = dist * 60 * 1.1515;
-                            dist = dist * 1.609344;
+                                //이미지 변경
+                                case 1:
+                                    binding.turnImg.setImageResource(R.drawable.turn_left);
+                                    break;
+                                case -1:
+                                    binding.turnImg.setImageResource(R.drawable.turn_right);
+                                    break;
 
-                            //목적지 이동 방향
-                            double radian_bearing = Math.acos((Math.sin(destLat) - Math.sin(oriLat)
-                                    * Math.cos(radian_distance)) / (Math.cos(oriLat) * Math.sin(radian_distance)));
-
-                            // 방위각
-                            double true_bearing = 0;
-                            if (Math.sin(destLng - oriLng) < 0) {
-                                true_bearing = radian_bearing * (180 / Math.PI);
-                                true_bearing = 360 - true_bearing;
-                            } else {
-                                true_bearing = radian_bearing * (180 / Math.PI);
+                                case 0:
+                                    binding.turnImg.setImageResource(R.drawable.straight);
+                                    break;
                             }
 
-//                            //81.61730028609989 좌회전
-//                            //81.40815369796698 우회전
-//                            //309.9079119302796 //좌회전
-//                            //340.95356272954484 //우회전
 
-
-                            Log.i("nearNode", "각도" + true_bearing);
-                            Thread.sleep(300);
+                            Thread.sleep(500);
                         } catch (Exception e) {
                             e.printStackTrace();
 
@@ -286,6 +278,57 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     } //setCameraPosition()
 
+    //좌회전 우회전 판단
+    double getAngle(LatLng NodeA, LatLng NodeB, LatLng NodeC) {
+
+        double dx1 = NodeB.latitude - NodeA.latitude;
+        double dy1 = NodeB.longitude - NodeA.longitude;
+        double dx2 = NodeC.latitude - NodeB.latitude;
+        double dy2 = NodeC.longitude - NodeB.longitude;
+        double d = dx1 * dx2 + dy1 * dy2;
+        double l2 = (dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2);
+        double angle = Math.acos(d / Math.sqrt(l2)); //삼각형 내적각
+
+        return Math.toDegrees(angle);
+    }
+
+    //좌회전 우회전 판단
+    int ccw(LatLng nodeA, LatLng nodeB, LatLng nodeC) {
+
+        double x1 = nodeA.latitude;
+        double y1 = nodeA.longitude;
+        double x2 = nodeB.latitude;
+        double y2 = nodeB.longitude;
+        double x3 = nodeC.latitude;
+        double y3 = nodeC.longitude;
+
+        double temp1 = (y2 - y1) * (x3 - x1) + y1 * (x2 - x1);
+        double temp2 = (x2 - x1) * y3;
+
+        double angle = getAngle(nodeA, nodeB, nodeC);
+
+        Log.i("nearNode", "angle : " + angle);
+        Log.i("nearNode", "temp1 : " + temp1);
+        Log.i("nearNode", "temp2 : " + temp2);
+
+        if (temp1 < temp2) { //반시계
+            if (angle <= 10) {
+                Log.i("nearNode", "직진");
+                return 0;
+            }
+            Log.i("nearNode", "< 우회전");
+            return -1;
+        } else if (temp1 > temp2) { //시계
+            if (angle <= 10) {
+                Log.i("nearNode", "직진");
+                return 0;
+            }
+            Log.i("nearNode", "< 좌회전");
+            return 1;
+        } else  //직진
+            Log.i("nearNode", "직진");
+        return 0;
+    }
 
     // cameraPosition 업데이트
     void setCameraPosition() {
@@ -309,7 +352,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.this_point)));
 
                             setThisMarker = true;
-                            Thread.sleep(300);
+                            Thread.sleep(500);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -407,28 +450,29 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         ///test
         nodeList.clear();
-        nodeList.add(new Node(1, 2, 35.89676692837808, 128.6211029849973, 0, 0));
-        nodeList.add(new Node(1, 2, 35.89678645386418, 128.62109763541596, 0, 1));
-        nodeList.add(new Node(1, 2, 35.89680822664796, 128.62108821210248, 0, 2));
-        nodeList.add(new Node(1, 2, 35.89682452256047, 128.62108150658008, 0, 3));
-        nodeList.add(new Node(1, 2, 35.89681854739295, 128.62105736669952, 0, 4));
-        nodeList.add(new Node(1, 2, 35.89681516589326, 128.62103397526943, 0, 5));
-        nodeList.add(new Node(1, 2, 35.89681219312073, 128.62099751503126, 0, 6));
-        nodeList.add(new Node(1, 2, 35.896809908532376, 128.62097509789052, 0, 7));
-        nodeList.add(new Node(1, 2, 35.89680469381667, 128.62095132676586, 0, 8));
-        nodeList.add(new Node(1, 2, 35.89680054450277, 128.6209311288803, 0, 9));
-        nodeList.add(new Node(1, 2, 35.896795650513106, 128.62090480051913, 0, 10));
-        nodeList.add(new Node(1, 2, 35.89678256020647, 128.62090882044487, 0, 11));
-        nodeList.add(new Node(1, 2, 35.896772278009685, 128.6209148348039, 0, 12));
-        nodeList.add(new Node(1, 2, 35.89676795318017, 128.62089267161, 0, 13));
-        nodeList.add(new Node(1, 2, 35.89676358504711, 128.62087258244446, 0, 14));
-        nodeList.add(new Node(1, 2, 35.89675937058593, 128.62085237790225, 0, 15));
-        nodeList.add(new Node(1, 2, 35.89675591348365, 128.62082863055366, 0, 16));
-        nodeList.add(new Node(1, 2, 35.896750434252915, 128.62080660430948, 0, 17));
-        nodeList.add(new Node(1, 2, 35.89674831490168, 128.620789836028, 0, 18));
-        nodeList.add(new Node(1, 2, 35.896747355562546, 128.62076923440867, 0, 19));
-        nodeList.add(new Node(1, 2, 35.896744657498395, 128.6207441547935, 0, 20));
-        nodeList.add(new Node(1, 2, 35.89674038032299, 128.6207232206703, 0, 21));
+        nodeList.add(new Node(1, 2, 35.89675603481015, 128.6211063525941, 0, 0));
+        nodeList.add(new Node(1, 2, 35.89676692837808, 128.6211029849973, 0, 1));
+        nodeList.add(new Node(1, 2, 35.89678645386418, 128.62109763541596, 0, 2));
+        nodeList.add(new Node(1, 2, 35.89680822664796, 128.62108821210248, 0, 3));
+        nodeList.add(new Node(1, 2, 35.89682452256047, 128.62108150658008, 0, 4));
+        nodeList.add(new Node(1, 2, 35.89681854739295, 128.62105736669952, 0, 5));
+        nodeList.add(new Node(1, 2, 35.89681516589326, 128.62103397526943, 0, 6));
+        nodeList.add(new Node(1, 2, 35.89681219312073, 128.62099751503126, 0, 7));
+        nodeList.add(new Node(1, 2, 35.896809908532376, 128.62097509789052, 0, 8));
+        nodeList.add(new Node(1, 2, 35.89680469381667, 128.62095132676586, 0, 9));
+        nodeList.add(new Node(1, 2, 35.89680054450277, 128.6209311288803, 0, 10));
+        nodeList.add(new Node(1, 2, 35.896795650513106, 128.62090480051913, 0, 11));
+        nodeList.add(new Node(1, 2, 35.89678256020647, 128.62090882044487, 0, 12));
+        nodeList.add(new Node(1, 2, 35.896772278009685, 128.6209148348039, 0, 13));
+        nodeList.add(new Node(1, 2, 35.89676795318017, 128.62089267161, 0, 14));
+        nodeList.add(new Node(1, 2, 35.89676358504711, 128.62087258244446, 0, 15));
+        nodeList.add(new Node(1, 2, 35.89675937058593, 128.62085237790225, 0, 16));
+        nodeList.add(new Node(1, 2, 35.89675591348365, 128.62082863055366, 0, 17));
+        nodeList.add(new Node(1, 2, 35.896750434252915, 128.62080660430948, 0, 18));
+        nodeList.add(new Node(1, 2, 35.89674831490168, 128.620789836028, 0, 19));
+        nodeList.add(new Node(1, 2, 35.896747355562546, 128.62076923440867, 0, 20));
+        nodeList.add(new Node(1, 2, 35.896744657498395, 128.6207441547935, 0, 21));
+        nodeList.add(new Node(1, 2, 35.89674038032299, 128.6207232206703, 0, 22));
 
 
         startPoint = nodeList.get(0).getLatLng();
@@ -477,110 +521,60 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     void testLatLng() {
 
         try {
-            testNum++;
             if (testNum == 0) {
-                thisPoint = new LatLng(35.896761232132604, 128.62037402930775);
-            } else if (testNum < 1) {
-                thisPoint = new LatLng(35.89678645386418, 128.62109763541596);
-            } else if (testNum < 2) {
-                thisPoint = new LatLng(35.89680822664796, 128.62108821210248);
-            } else if (testNum < 3) {
-                thisPoint = new LatLng(35.89682452256047, 128.62108150658008);
-            } else if (testNum < 4) {
-                thisPoint = new LatLng(35.89682343616642, 128.6210835182368);
-            } else if (testNum < 5) {
-                thisPoint = new LatLng(35.896825065757504, 128.62108083602786);
-            } else if (testNum < 6) {
-                thisPoint = new LatLng(35.89681854739295, 128.62105736669952);
-            } else if (testNum < 7) {
-                thisPoint = new LatLng(35.89681516589326, 128.62103397526943);
-            } else if (testNum < 8) {
-                thisPoint = new LatLng(35.89681219312073, 128.62099751503126);
-            } else if (testNum < 9) {
-                thisPoint = new LatLng(35.896809908532376, 128.62097509789052);
-            } else if (testNum < 10) {
-                thisPoint = new LatLng(35.89680469381667, 128.62095132676586);
-            } else if (testNum < 11) {
-                thisPoint = new LatLng(35.89680054450277, 128.6209311288803);
-            } else if (testNum < 12) {
-                thisPoint = new LatLng(35.896801087699956, 128.62092978777585);
-            } else if (testNum < 13) {
-                thisPoint = new LatLng(35.896795650513106, 128.62090480051913);
-            } else if (testNum < 14) {
-                thisPoint = new LatLng(35.89678256020647, 128.62090882044487);
-            } else if (testNum < 15) {
-                thisPoint = new LatLng(35.896772278009685, 128.6209148348039);
-            } else if (testNum < 16) {
-                thisPoint = new LatLng(35.89676795318017, 128.62089267161);
-            } else if (testNum < 17) {
-                thisPoint = new LatLng(35.89676358504711, 128.62087258244446);
-            } else if (testNum < 18) {
-                thisPoint = new LatLng(35.89675937058593, 128.62085237790225);
-            } else if (testNum < 19) {
-                thisPoint = new LatLng(35.89675591348365, 128.62082863055366);
-            } else if (testNum < 20) {
-                thisPoint = new LatLng(35.896750434252915, 128.62080660430948);
-            } else if (testNum < 21) {
-                thisPoint = new LatLng(35.89674831490168, 128.620789836028);
-            } else if (testNum < 22) {
-                thisPoint = new LatLng(35.896747355562546, 128.62076923440867);
-            } else if (testNum < 23) {
-                thisPoint = new LatLng(35.896744657498395, 128.6207441547935);
-            } else if (testNum < 24) {
-                thisPoint = new LatLng(35.89674038032299, 128.6207232206703);
+                thisPoint = new LatLng(nodeList.get(0).getLatLng().latitude, nodeList.get(0).getLatLng().longitude);
+            } else if (testNum <= 1) {
+                thisPoint = new LatLng(nodeList.get(1).getLatLng().latitude, nodeList.get(1).getLatLng().longitude);
+            } else if (testNum <= 2) {
+                thisPoint = new LatLng(nodeList.get(2).getLatLng().latitude, nodeList.get(2).getLatLng().longitude);
+            } else if (testNum <= 3) {
+                thisPoint = new LatLng(nodeList.get(3).getLatLng().latitude, nodeList.get(3).getLatLng().longitude);
+            } else if (testNum <= 4) {
+                thisPoint = new LatLng(nodeList.get(4).getLatLng().latitude, nodeList.get(4).getLatLng().longitude);
+            } else if (testNum <= 5) {
+                thisPoint = new LatLng(nodeList.get(5).getLatLng().latitude, nodeList.get(5).getLatLng().longitude);
+            } else if (testNum <= 6) {
+                thisPoint = new LatLng(nodeList.get(6).getLatLng().latitude, nodeList.get(6).getLatLng().longitude);
+            } else if (testNum <= 7) {
+                thisPoint = new LatLng(nodeList.get(7).getLatLng().latitude, nodeList.get(7).getLatLng().longitude);
+            } else if (testNum <= 8) {
+                thisPoint = new LatLng(nodeList.get(8).getLatLng().latitude, nodeList.get(8).getLatLng().longitude);
+            } else if (testNum <= 9) {
+                thisPoint = new LatLng(nodeList.get(9).getLatLng().latitude, nodeList.get(9).getLatLng().longitude);
+            } else if (testNum <= 10) {
+                thisPoint = new LatLng(nodeList.get(10).getLatLng().latitude, nodeList.get(10).getLatLng().longitude);
+            } else if (testNum <= 11) {
+                thisPoint = new LatLng(nodeList.get(11).getLatLng().latitude, nodeList.get(11).getLatLng().longitude);
+            } else if (testNum <= 12) {
+                thisPoint = new LatLng(nodeList.get(12).getLatLng().latitude, nodeList.get(12).getLatLng().longitude);
+            } else if (testNum <= 13) {
+                thisPoint = new LatLng(nodeList.get(13).getLatLng().latitude, nodeList.get(13).getLatLng().longitude);
+            } else if (testNum <= 14) {
+                thisPoint = new LatLng(nodeList.get(14).getLatLng().latitude, nodeList.get(14).getLatLng().longitude);
+            } else if (testNum <= 15) {
+                thisPoint = new LatLng(nodeList.get(15).getLatLng().latitude, nodeList.get(15).getLatLng().longitude);
+            } else if (testNum <= 16) {
+                thisPoint = new LatLng(nodeList.get(16).getLatLng().latitude, nodeList.get(16).getLatLng().longitude);
+            } else if (testNum <= 17) {
+                thisPoint = new LatLng(nodeList.get(17).getLatLng().latitude, nodeList.get(17).getLatLng().longitude);
+            } else if (testNum <= 18) {
+                thisPoint = new LatLng(nodeList.get(18).getLatLng().latitude, nodeList.get(18).getLatLng().longitude);
+            } else if (testNum <= 19) {
+                thisPoint = new LatLng(nodeList.get(19).getLatLng().latitude, nodeList.get(19).getLatLng().longitude);
+            } else if (testNum <= 20) {
+                thisPoint = new LatLng(nodeList.get(20).getLatLng().latitude, nodeList.get(20).getLatLng().longitude);
+            } else if (testNum <= 21) {
+                thisPoint = new LatLng(nodeList.get(21).getLatLng().latitude, nodeList.get(21).getLatLng().longitude);
+            } else if (testNum <= 22) {
+                thisPoint = new LatLng(nodeList.get(22).getLatLng().latitude, nodeList.get(22).getLatLng().longitude);
             } else {
                 testNum = 0;
             }
-
-            //test
-            LatLng oriLatLng = nearNode().getLatLng();
-            if ((nearNode().getIndex() + 2) >= nodeList.size()) {
-                return;
-            }
-
-            LatLng destLatLng = nodeList.get(nearDist() + 2).getLatLng();
-
-
-            Log.i("nearNode", "현 가까운 노드 : " + nearNode().getIndex());
-            Log.i("nearNode", "비교 노드 : " + nodeList.get(nearNode().getIndex() + 2).getIndex());
-
-
-            //라디안 각도로 변환
-            double radian = Math.PI / 180;
-            double oriLat = oriLatLng.latitude * radian;
-            double oriLng = oriLatLng.longitude * radian;
-            double destLat = destLatLng.latitude * radian;
-            double destLng = destLatLng.longitude * radian;
-
-            //두 좌표의 거리
-            double radian_distance = Math.acos(Math.sin(oriLat) * Math.sin(destLat)
-                    + Math.cos(oriLat) * Math.cos(destLat) * Math.cos(oriLng - destLng));
-
-            double dist = radian_distance * radian;
-            dist = dist * 60 * 1.1515;
-            dist = dist * 1.609344;
-
-            //목적지 이동 방향
-            double radian_bearing = Math.acos((Math.sin(destLat) - Math.sin(oriLat)
-                    * Math.cos(radian_distance)) / (Math.cos(oriLat) * Math.sin(radian_distance)));
-
-            // 방위각
-            double true_bearing = 0;
-            if (Math.sin(destLng - oriLng) < 0) {
-                true_bearing = radian_bearing * (180 / Math.PI);
-                true_bearing = 360 - true_bearing;
-            } else {
-                true_bearing = radian_bearing * (180 / Math.PI);
-            }
-
-
-            Log.i("nearNode", "각도" + true_bearing);
-
-
-            //>>>>>>>test
+            testNum++;
 
             Thread.sleep(500);
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             e.printStackTrace();
         }
 
@@ -651,6 +645,7 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
         double radian_distance = Math.acos(Math.sin(startLat) * Math.sin(endLat)
                 + Math.cos(startLat) * Math.cos(endLat) * Math.cos(startLng - endLng));
 
+
         //목적지 이동 방향
         double radian_bearing = Math.acos((Math.sin(endLat) - Math.sin(startLat)
                 * Math.cos(radian_distance)) / (Math.cos(startLat) * Math.sin(radian_distance)));
@@ -703,8 +698,6 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
     Node nearNode() {
 
         Node nearNode = null;
-        double thisLat = thisPoint.latitude;
-        double thisLng = thisPoint.longitude;
 
         double distArr[][] = new double[nodeList.size()][2];
 
@@ -714,20 +707,11 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             //같은 층의 노드인지 판단
             if (nodeList.get(i).getFloor() == getThisFloor()) {
-                double nodeLat = nodeList.get(i).getLatLng().latitude;
-                double nodeLng = nodeList.get(i).getLatLng().longitude;
-
-                //거리 계산
-                double a = Math.pow(Math.sin(Math.toRadians(nodeLat - thisLat) / 2), 2.0)
-                        + Math.pow(Math.sin(Math.toRadians(nodeLng - thisLng) / 2), 2.0)
-                        * Math.cos(Math.toRadians(thisLat))
-                        * Math.cos(Math.toRadians(nodeLat));
+                double a = getDistance(thisPoint, nodeList.get(i).getLatLng());
                 double c = 2 * Math.asin(a);
                 double dist = R * c;
                 distArr[i][0] = dist; //거리
                 distArr[i][1] = i; //인덱스
-
-
             }
         }
 
@@ -740,12 +724,23 @@ public class FlowActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         nearNode = nodeList.get((int) distArr[0][1]);
 
-        Log.i("nearNode", "thisNode : " + thisPoint);
-        Log.i("nearNode", "nearNode : " + nearNode.getLatLng());
-        Log.i("nearNode", "nearNode index: " + nearNode.getIndex());
         return nearNode;
     }//nearNode()
 
+    private double getDistance(LatLng a, LatLng b) {
+
+        double lat1 = a.latitude;
+        double lng1 = a.longitude;
+        double lat2 = b.latitude;
+        double lng2 = b.longitude;
+
+        double distance = Math.pow(Math.sin(Math.toRadians(lat1 - lat2) / 2), 2.0)
+                + Math.pow(Math.sin(Math.toRadians(lng1 - lng2) / 2), 2.0)
+                * Math.cos(Math.toRadians(lat2))
+                * Math.cos(Math.toRadians(lat1));
+
+        return Math.toDegrees(distance);
+    }
 
     // 현위치 회전 부드럽게
     private void changeAzimut(float mAzimut) {
